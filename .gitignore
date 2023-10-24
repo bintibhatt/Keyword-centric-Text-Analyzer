@@ -1,0 +1,26 @@
+# created by virtualenv automatically
+# Byte-compiled / optimized files
+__pycache__/
+*.pyc
+*.pyo
+*.pyd
+
+# Environment directories
+venv/
+env/
+/.vscode/
+/.idea/
+
+# Distribution / packaging
+dist/
+build/
+*.egg-info/
+
+# Local development settings
+*.log
+
+# Editor or OS-specific files
+.vscode/
+
+# Virtual Environment
+env/

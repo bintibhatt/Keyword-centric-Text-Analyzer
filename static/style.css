@@ -1,0 +1,134 @@
+/* Style for the form container */
+body {
+  background-color: #cae2ff;
+  font-size: 120%;
+  font-family: Verdana, Geneva, Tahoma, sans-serif;
+}
+
+h3 {
+  text-align: center;
+}
+
+.main_div {
+  width: 70%;
+  margin-left: 15%;
+  padding: 2%;
+  background-color: #83adfb;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 10px;
+}
+
+.results_div {
+  width: 80%;
+  margin-left: 10%;
+  margin-top: 2%;
+  padding: 2%;
+  background-color: #99c1f9;
+  box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px;
+  border-radius: 10px;
+}
+
+.form-container {
+  max-width: 500px;
+  margin: 0 auto;
+  padding: 20px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+/* Style for the search results */
+/* Popup styles */
+.popup {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  transform: translate(-50%, -50%);
+  background-color: white;
+  border: 1px solid #ccc;
+  padding: 20px;
+  width: 100%;
+  z-index: 9999;
+}
+
+/* Overlay styles */
+.overlay {
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background-color: rgba(0, 0, 0, 0.6);
+  z-index: 9998;
+}
+
+.results-container {
+  margin-top: 20px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 70vh;
+}
+
+/* Style for the form elements */
+label {
+  display: block;
+  margin-bottom: 10px;
+  font-weight: bold;
+}
+
+textarea,
+input[type="text"],
+select {
+  width: 100%;
+  padding: 10px;
+  border: 1px solid #98bcff;
+  border-radius: 4px;
+  box-sizing: border-box;
+  font-size: 14px;
+  /* box-shadow: rgba(0, 0, 0, 0.24) 0px 3px 8px; */
+  background-color: #c4dbfa;
+}
+
+input[type="submit"] {
+  background-color: #014c8a;
+  color: #fff;
+  padding: 12px 24px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 16px;
+  transition: background-color 0.3s ease;
+}
+
+input[type="submit"]:hover {
+  background-color: #003663;
+}
+
+/* Style for the search results */
+
+h2 {
+  font-size: 18px;
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+ul {
+  list-style-type: none;
+  padding: 0;
+}
+
+li {
+  margin-bottom: 5px;
+  color: #333;
+}
+
+.highlight {
+  background-color: yellow;
+}

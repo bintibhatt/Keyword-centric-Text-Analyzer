@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <title>Search Results</title>
+</head>
+
+<body>
+    <h1>Search Results</h1>
+    {% if sentences %}
+    <ul>
+        {% for sentence in sentences %}
+        <li>{{ sentence }}</li>
+        {% endfor %}
+    </ul>
+    {% else %}
+    <p>No sentences found.</p>
+    {% endif %}
+</body>
+
+</html>

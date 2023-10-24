@@ -1,0 +1,88 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+  <title>Keyword-centric Text Analyzer</title>
+  <link rel="stylesheet" type="text/css" href="{{ url_for('static', filename='style.css') }}">
+
+</head>
+
+<body>
+  <h3>Keyword-centric Text Analyzer</h3>
+  <div class="main_div">
+    <form action="/search" method="POST">
+      <label for="text">Enter Text:</label>
+      <textarea name="text" id="text" rows="5" cols="50">{{ input_text }}</textarea><br><br>
+      <label for="keywords">Enter Keywords (separated by commas):</label>
+      <input type="text" name="keywords" id="keywords" value="{{ input_keywords }}"><br><br>
+      <label for="choice">Select Option:</label>
+      <select name="choice" id="choice">
+        <option value="1" {% if choice=='1' %}selected{% endif %}>Basic Search</option>
+        <option value="2" {% if choice=='2' %}selected{% endif %}>Root word Search</option>
+        <option value="3" {% if choice=='3' %}selected{% endif %}>Context Search</option>
+      </select><br><br>
+      <input type="submit" value="Search">
+    </form>
+  </div>
+
+  <!-- {% if sentences %}
+  <h2>Matching Sentences:</h2>
+  <ul>
+    {% for sentence in sentences %}
+    <li>{{ sentence }}</li>
+    {% endfor %}
+  </ul>
+  {% elif choice %}
+  <p>No matching sentences found.</p>
+  {% endif %} -->
+  <div class="results_div">
+    <h4>Output:</h4>
+    {% if sentences %}
+    <h2>Matching Sentences:</h2>
+    <ul>
+      {% for sentence in sentences %}
+      <li>{{ '- ' + sentence }}</li>
+      {% endfor %}
+    </ul>
+    {% else %}
+    {% if choice %}
+    <p>No matching sentences found.</p>
+    {% else %}
+    <p>No sentences or choice provided.</p>
+    {% endif %}
+    {% endif %}
+  </div>
+<!-- <button onclick="openPopup()">Open Popup</button> -->
+<br>  
+<div id="popupContainer" style="display: none;">
+  <div class="overlay" onclick="closePopup()"></div>
+  <div class="popup">
+    <div class="results_div">
+      {% if sentences %}
+      <h2>Matching Sentences:</h2>
+      <ul>
+        {% for sentence in sentences %}
+        <li>{{ '- ' + sentence + '.' }}</li>
+        {% endfor %}
+      </ul>
+      {% else %}
+      {% if choice %}
+      <p>No matching sentences found.</p>
+      {% else %}
+      <p>No sentences or choice provided.</p>
+      {% endif %}
+      {% endif %}
+    </div>
+  </div>
+</div>
+
+<script>
+  function openPopup() {
+    document.getElementById('popupContainer').style.display = 'block';
+  }
+
+  function closePopup() {
+    document.getElementById('popupContainer').style.display = 'none';
+  }
+</script>
+</html>
