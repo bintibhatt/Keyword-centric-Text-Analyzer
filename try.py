@@ -1,82 +1,129 @@
-import re
-import numpy as np
-from nltk.corpus import wordnet
-from nltk.stem import WordNetLemmatizer
-from nltk.tokenize import word_tokenize
-from nltk.tag import pos_tag
-from flask import Flask, render_template, request
-from sentence_transformers import SentenceTransformer, util
+    import re
+    import numpy as np
+    from nltk.corpus import wordnet
+    from nltk.stem import WordNetLemmatizer
+    from nltk.tokenize import word_tokenize
+    from nltk.tag import pos_tag
+    from flask import Flask, render_template, request
+    from sentence_transformers import SentenceTransformer, util
 
-app = Flask(__name__)
+    app = Flask(__name__)
 
-# Load a pre-trained BERT model for sentence embeddings
-bert_model = SentenceTransformer('bert-base-nli-mean-tokens')
+    def get_wordnet_pos(tag):
+        if tag.startswith('J'):
+            return wordnet.ADJ
+        elif tag.startswith('V'):
+            return wordnet.VERB
+        elif tag.startswith('N'):
+            return wordnet.NOUN
+        elif tag.startswith('R'):
+            return wordnet.ADV
+        else:
+            return wordnet.NOUN
 
-def get_wordnet_pos(tag):
-    if tag.startswith('J'):
-        return wordnet.ADJ
-    elif tag.startswith('V'):
-        return wordnet.VERB
-    elif tag.startswith('N'):
-        return wordnet.NOUN
-    elif tag.startswith('R'):
-        return wordnet.ADV
-    else:
-        return wordnet.NOUN
+    def lemmatize_keywords(keywords):
+        lemmatizer = WordNetLemmatizer()
+        lemmatized_keywords = []
+        for keyword in keywords:
+            tokens = word_tokenize(keyword)
+            tagged_tokens = pos_tag(tokens)
+            lemmatized_tokens = [lemmatizer.lemmatize(token, get_wordnet_pos(pos_tag)) for token, pos_tag in tagged_tokens]
+            lemmatized_keyword = " ".join(lemmatized_tokens)
+            lemmatized_keywords.append(lemmatized_keyword)
+        return lemmatized_keywords
 
-def search_sentences(text, keywords, lemmatize=False, bert_search=False):
-    sentences = []
+    def search_sentences_with_lemmatizer(text, keywords):
+        sentences = []
+        paragraph = text
 
-    lemmatizer = WordNetLemmatizer()
-    if lemmatize:
-        keywords = [lemmatizer.lemmatize(keyword, get_wordnet_pos(pos_tag([keyword])[0][1])) for keyword in keywords]
+        # Split the paragraph into sentences
+        sentence_list = re.split(r'[.!?]+', paragraph)
 
-    if bert_search:
-        sentence_embeddings = bert_model.encode(text, convert_to_tensor=True)
-        keyword_embeddings = bert_model.encode(keywords, convert_to_tensor=True)
+        # Lemmatize the keywords
+        lemmatized_keywords = lemmatize_keywords(keywords)
 
-        # Ensure that the number of embeddings matches the number of sentences
-        if len(sentence_embeddings) != len(text):
-            return sentences  # Handle this error gracefully
-
-        for i, similarity in enumerate(similarities):
-            if i < len(text) and any(similarity > 0.8):
-                sentences.append(text[i])
-    else:
-        sentence_list = re.split(r'[.!?]+', text)
-
+        # Iterate over each sentence
         for sentence in sentence_list:
             sentence = sentence.strip()
-            sentence_lower = sentence.lower()
-            if any(keyword.lower() in sentence_lower for keyword in keywords):
-                sentences.append(sentence)
+            for keyword in lemmatized_keywords:
+                if keyword.lower() in sentence.lower():
+                    sentences.append(sentence)
+                    break
 
-    return sentences
+        return sentences
 
-@app.route('/')
-def home():
-    return render_template('index.html')
+    def search_sentences_without_lemmatizer(text, keywords):
+        # Split the text into sentences
+        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
 
-@app.route('/search', methods=['POST'])
-def search():
-    input_text = request.form['text']
-    input_keywords = request.form['keywords'].split(',')
+        # Initialize a list to store the sentences containing the keywords
+        sentences_with_keywords = []
 
-    # Remove leading/trailing whitespaces from the keywords
-    keywords = [keyword.strip() for keyword in input_keywords]
+        for sentence in sentences:
+            # Tokenize the sentence into words
+            tokens = re.findall(r'\b\w+\b', sentence.lower())
 
-    choice = request.form['choice']
+            # Check if any of the keywords are present in the sentence
+            if any(keyword.lower() in tokens for keyword in keywords):
+                sentences_with_keywords.append(sentence)
 
-    if choice == '1':
-        matching_sentences = search_sentences(input_text, keywords, lemmatize=False, bert_search=False)
-    elif choice == '2':
-        matching_sentences = search_sentences(input_text, keywords, lemmatize=True, bert_search=False)
-    elif choice == '3':
-        matching_sentences = search_sentences(input_text, keywords, lemmatize=False, bert_search=True)
-    else:
-        matching_sentences = []  # Handle other choices as needed
+        return sentences_with_keywords
 
-    return render_template('index.html', sentences=matching_sentences, choice=choice)
+    sbert_model = SentenceTransformer('bert-base-nli-mean-tokens')
 
-if __name__ == '__main__':
-    app.run(debug=True)
+    def search_sentences_with_bert(text, keywords, sbert_model):
+        sentences = re.split(r'(?<!\w\.\w.)(?<![A-Z][a-z]\.)(?<=\.|\?)\s', text)
+        sentences_with_keywords = []
+
+        # Encode the keywords using the SBERT model
+        keyword_embeddings = sbert_model.encode(keywords, convert_to_tensor=True)
+
+        for sentence in sentences:
+            # Encode the sentence using the SBERT model
+            sentence_embedding = sbert_model.encode([sentence], convert_to_tensor=True)
+
+            # Calculate cosine similarity between the sentence and keywords
+            cosine_scores = util.pytorch_cos_sim(sentence_embedding, keyword_embeddings)
+            max_score = cosine_scores.max()
+
+            # You can adjust this threshold to control the similarity threshold
+            if max_score > 0.7:
+                sentences_with_keywords.append(sentence)
+
+        return sentences_with_keywords
+
+    @app.route('/')
+    def home():
+        return render_template('index.html')
+
+    @app.route('/search', methods=['POST'])
+    def search():
+        input_text = request.form['text']
+        input_keywords = request.form['keywords'].split(',')
+
+        # Remove leading/trailing whitespaces from the keywords
+        keywords = [keyword.strip() for keyword in input_keywords]
+
+        # Search for matching sentences with lemmatizer
+        matching_sentences_with_lemmatizer = search_sentences_with_lemmatizer(input_text, keywords)
+
+        # Search for matching sentences with BERT
+        matching_sentences_with_bert = search_sentences_with_bert(input_text, keywords, sbert_model)
+
+        # Search for matching sentences without lemmatizer
+        matching_sentences_without_lemmatizer = search_sentences_without_lemmatizer(input_text, keywords)
+
+        if request.form['choice'] == '1':
+            matching_sentences = matching_sentences_without_lemmatizer
+            choice = '1'
+        elif request.form['choice'] == '2':
+            matching_sentences = matching_sentences_with_lemmatizer
+            choice = '2'
+        else:
+            matching_sentences = matching_sentences_with_bert
+            choice = '3'
+
+        return render_template('index.html', sentences=matching_sentences, choice=choice)
+
+    if __name__ == '__main__':
+        app.run(debug=True)
